@@ -1,17 +1,20 @@
-﻿f1::
+﻿
+
+FileDelete, %A_ScriptDir%\selection_all.txt
+
+f1::
+
+url_78csv := "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUzYHuycnwsFix3k4v76cPIiNJQhlBvTVqj7LoHhsiq44KsEl4X4AQCEBxOGn2ibMp31D0fVLyjSDH/pub?gid=1272286978&single=true&output=csv"
+
+csv78List := URLDownloadToVar(url_78csv)
+
+;-------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 loop, 11
     {
     allSelection%A_Index% := []
     }
-; allSelection1 := [33,44]
-; allSelection1 := []
-; allSelection2 := []
-
-
-url_78csv := "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUzYHuycnwsFix3k4v76cPIiNJQhlBvTVqj7LoHhsiq44KsEl4X4AQCEBxOGn2ibMp31D0fVLyjSDH/pub?gid=1272286978&single=true&output=csv"
-
-csv78List := URLDownloadToVar(url_78csv)
 
 
 Loop, 99
@@ -19,10 +22,8 @@ Loop, 99
     RegExMatch(csv78List, "s)iz\d+\,(\d+)\,(\d+)\,(\d+)\,(\d+)\,(\d+)", data)
     if (data != "")
         {
-        ; msgbox,,,  %data% `n`n  %data1%  %data2% `n`n `n`n %csv78List%, .1
-        ; msgbox,,, %data%, .02
         StringReplace, csv78List, csv78List, %data%
-        allSelection%data1%.Push(data2)
+        allSelection%data1%.Push(data2)        
         }
     else
         {
@@ -33,34 +34,72 @@ Loop, 99
     }
 
 
-    for k, v in allSelection1
+loop, 11
+{
+; Store sorted result in data1, data2, etc.
+data%A_Index% := InsertionSort(allSelection%A_Index%)
+
+currentData := data%A_Index%
+
+sorted := ""
+for k, v in currentData
     {
-    msgbox,,, % v 
+    ; msgbox,,, % v 
+    sorted .= v ","
     }
 
+; , - match a comma
+; $ - at the end of the string
+sorted_modify := ""
+sorted_modify := RegExReplace(sorted, ",$", "*")
 
-    for k, v in allSelection2        
-    {
-    msgbox,,, % v 
-    }
+rc_ := ""
+rc_ .= "rc" . A_Index
+; msgbox, % sorted
+FileAppend, % rc_ " : " sorted_modify "`n", %A_ScriptDir%\selection_all.txt
 
-    for k, v in allSelection3        
-    {
-    msgbox,,, % v 
-    }
-; msgbox,,, % allSelection1[1]
-; msgbox,,, % allSelection1[2]
-; msgbox,,, % allSelection1[3]
-; ; FileAppend, %hseCodeList%, %A_ScriptDir%\tcp_test.txt
+}
 
 return
 
-
-
-
 ;  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ;  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ;  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+InsertionSort(arr) {
+    ; Make a copy of the array to avoid modifying original
+    sorted := []
+    for i, val in arr
+        sorted.Push(val)
+    
+    ; Insertion sort algorithm
+    for i, val in sorted {
+        if (i = 1)
+            continue
+        j := i - 1
+        while (j >= 1 && sorted[j] > val) {
+            sorted[j+1] := sorted[j]
+            j--
+        }
+        sorted[j+1] := val
+    }
+    return sorted
+}
+
+; InsertionSort(ar)
+; {
+; 	For i, v in ar
+; 		list .=	v ","
+; 	list :=	Trim(list,",")
+; 	Sort, list, N D`,
+; 	out :=	[]
+; 	Loop, parse, list, `,
+; 		out.Push(A_LoopField)
+; 	Return	out
+; }
+
+;=================================================================================================================================================
 
 URLDownloadToVar(url){
 	obj:=ComObjCreate("WinHttp.WinHttpRequest.5.1"),obj.Open("GET",url),obj.Send()
